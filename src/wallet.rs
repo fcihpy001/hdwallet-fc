@@ -1,7 +1,4 @@
 
-
-mod models;
-
 use bip39::{Error, Mnemonic};
 use bitcoin::{
     network::constants::Network,
@@ -67,7 +64,7 @@ pub fn pubkey_address(pubkey: ExtendedPubKey) -> [(&'static str, String); 3] {
 //
 #[test]
 fn test_pubkey_address(){
-let test_mnemonic_phrase: &str = "pulp gun crisp mechanic hub ahead blouse hurry life boss option evolve";
+    let test_mnemonic_phrase: &str = "pulp gun crisp mechanic hub ahead blouse hurry life boss option evolve";
     let test_seed = self::get_mnemonic(test_mnemonic_phrase).unwrap().to_seed("");
 
     let hd_path= AccountHDPath::new(Purpose::Pubkey, 0, 0).address_at(0,0).unwrap();
@@ -102,4 +99,3 @@ fn get_mnemonic(mnemonic: &str) -> Result<Mnemonic, Error> {
     return Mnemonic::parse_normalized(&mnemonic);
 }
 
-fn main() {}
