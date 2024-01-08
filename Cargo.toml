@@ -5,6 +5,9 @@ version = "0.1.0"
 authors = ["fcihpy@gmail.com"]
 edition = "2021"
 
+[lib]
+name = "hdwallet_fc"
+path = "src/lib.rs"
 
 [dependencies]
 
