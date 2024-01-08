@@ -1,0 +1,14 @@
+[package]
+name = "hdwallet-fc"
+description = "hdwallet "
+version = "0.1.0"
+authors = ["fcihpy@gmail.com"]
+edition = "2021"
+
+
+[dependencies]
+
+hdpath = { version = "0.6", features = ["with-bitcoin"] }
+secp256k1 = "0.20.3"
+bitcoin = "0.27.0"
+bip39 = "2.0.0"
