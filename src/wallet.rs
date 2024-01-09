@@ -59,13 +59,15 @@ pub fn btc_addr_p2wpkh(mnemonic: &str) -> String {
     return  Address::p2wpkh(&pubkey.public_key, Network::Bitcoin).unwrap().to_string();
 }
 
-pub fn eth_addr(mnemonic: &str) -> String {
+pub fn eth_private(mnemonic: &str) -> String {
     let mn = Mnemonic::parse_normalized(mnemonic);
     let seed = mn.unwrap().to_seed("");
     let private_key = get_private_key(seed, 44,60);
     let pubkey = get_public_key(private_key);
-    println!("ssss {}", private_key.private_key.to_string());
-    return  Address::p2wpkh(&pubkey.public_key, Network::Bitcoin).unwrap().to_string();
+    // let secp = Secp256k1::new();
+    // println!("子私钥 {}", private_key.private_key.key.to_string());
+    // println!("子公钥 {}", private_key.private_key.public_key(&secp).to_string());
+    return private_key.private_key.key.to_string();
 }
 
 #[cfg(test)]
