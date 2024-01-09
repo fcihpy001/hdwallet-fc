@@ -1,5 +1,5 @@
 use bip39::{Error, Mnemonic};
-use bitcoin::util::bip32::ExtendedPrivKey;
+use bitcoin::util::bip32::{ChildNumber, ExtendedPrivKey};
 use bitcoin::{
     network::constants::Network,
     util::bip32::{DerivationPath, ExtendedPubKey},
@@ -14,9 +14,19 @@ pub fn get_private_key(seed: [u8; 64], hd_path: &StandardHDPath) -> ExtendedPriv
 
     let master = ExtendedPrivKey::new_master(Network::Bitcoin, &seed).unwrap();
     println!("bip32根密钥 {}", master.to_string());
+
+    let path = vec![
+        ChildNumber::Hardened {index:44},
+        ChildNumber::Hardened {index:0},
+        ChildNumber::Hardened {index:0},
+        ChildNumber::Normal {index:0},
+        ChildNumber::Normal {index:0},
+    ];
+
     let private_key = master
-        .derive_priv(&secp, &DerivationPath::from(hd_path))
+        .derive_priv(&secp, &path)
         .unwrap();
+    println!("扩展私钥 {}", private_key.to_string());
     return private_key;
 }
 
