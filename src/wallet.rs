@@ -39,7 +39,6 @@ pub fn btc_addr_p2pkh(mnemonic: &str) -> String {
     let private_key = get_private_key(seed, 44,0);
     let pubkey = get_public_key(private_key);
     return  Address::p2pkh(&pubkey.public_key, Network::Bitcoin).to_string();
-
 }
 
 pub fn btc_addr_p2shwpkh(mnemonic: &str) -> String {
@@ -73,7 +72,7 @@ pub fn eth_private(mnemonic: &str) -> String {
 #[cfg(test)]
 pub mod tests {
     use hdpath::{AccountHDPath, Purpose};
-    use crate::wallet::{btc_addr_p2pkh, btc_addr_p2shwpkh, btc_addr_p2wpkh, eth_addr, get_mnemonic, get_private_key, get_public_key};
+    use crate::wallet::{btc_addr_p2pkh, btc_addr_p2shwpkh, btc_addr_p2wpkh, eth_private, get_mnemonic, get_private_key, get_public_key};
 
     #[test]
     fn test_p2p2kh_addr() {
@@ -98,10 +97,10 @@ pub mod tests {
     }
 
     #[test]
-    fn test_eth_addr() {
+    fn test_eth_private() {
         let mn = "pulp gun crisp mechanic hub ahead blouse hurry life boss option evolve";
-        let addr = eth_addr(mn);
-        assert_eq!(addr, "bc1qdk8g0wn5lnvuf6da2rxfk5922285qje3tz7dca")
+        let addr = eth_private(mn);
+        assert_eq!(addr, "ff4d431538ee621168a8063e640653b2413ff4dbb519f954748d5eef669a6347")
     }
 
     #[test]
@@ -113,12 +112,9 @@ pub mod tests {
             .to_seed("");
         println!("bip39种子(seed): {:?}", hex::encode(test_seed));
 
-        let hd_path = AccountHDPath::new(Purpose::Pubkey, 0, 0)
-            .address_at(0, 0)
-            .unwrap();
-        let seed_byte = hex::decode(hex::encode(test_seed)).unwrap();
         // 获取扩展私钥
         let private_key = get_private_key(test_seed,44,0);
+        println!("扩展密钥 {}", private_key.to_string());
         println!("子私钥 {}", private_key.private_key.to_string());
 
         assert_eq!(
@@ -135,9 +131,6 @@ pub mod tests {
             .unwrap()
             .to_seed("");
 
-        let hd_path = AccountHDPath::new(Purpose::Pubkey, 0, 0)
-            .address_at(0, 0)
-            .unwrap();
         let private_key = get_private_key(test_seed, 44,0);
 
         let public_key = get_public_key(private_key);
