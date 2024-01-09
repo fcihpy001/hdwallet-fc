@@ -1,12 +1,12 @@
 [package]
 name = "hdwallet-fc"
 description = "hdwallet "
-version = "0.2.2"
+version = "0.2.3"
 authors = ["fcihpy@gmail.com"]
 edition = "2021"
 license = "MIT OR Apache-2.0"
-keywords = ["hdwallet", "bip32"]
 
+keywords = ["hdwallet", "bip32"]
 [lib]
 name = "hdwallet_fc"
 path = "src/lib.rs"
