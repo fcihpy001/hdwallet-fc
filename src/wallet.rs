@@ -1,22 +1,18 @@
 use bip39::{Error, Mnemonic};
 use bitcoin::util::bip32::{ChildNumber, ExtendedPrivKey};
-use bitcoin::{
-    network::constants::Network,
-    util::bip32::{DerivationPath, ExtendedPubKey},
-    Address,
-};
+use bitcoin::{network::constants::Network, util::bip32::{DerivationPath, ExtendedPubKey}, Address, PublicKey};
 use hdpath::{AccountHDPath, Purpose, StandardHDPath};
 use secp256k1::Secp256k1;
 use std::convert::TryInto;
 
-pub fn get_private_key(seed: [u8; 64]) -> ExtendedPrivKey {
+pub fn get_private_key(seed: [u8; 64], purpose: u32) -> ExtendedPrivKey {
     let secp = Secp256k1::new();
 
     let master = ExtendedPrivKey::new_master(Network::Bitcoin, &seed).unwrap();
-    println!("bip32根密钥 {}", master.to_string());
+    // println!("bip32根密钥 {}", master.to_string());
 
     let path = vec![
-        ChildNumber::Hardened {index:44},
+        ChildNumber::Hardened {index:purpose},
         ChildNumber::Hardened {index:0},
         ChildNumber::Hardened {index:0},
         ChildNumber::Normal {index:0},
@@ -26,7 +22,7 @@ pub fn get_private_key(seed: [u8; 64]) -> ExtendedPrivKey {
     let private_key = master
         .derive_priv(&secp, &path)
         .unwrap();
-    println!("扩展私钥 {}", private_key.to_string());
+    // println!("扩展私钥 {}", private_key.to_string());
     return private_key;
 }
 
@@ -44,7 +40,7 @@ fn test_get_private_key() {
         .unwrap();
     let seed_byte = hex::decode(hex::encode(test_seed)).unwrap();
     // 获取扩展私钥
-    let private_key = get_private_key(test_seed);
+    let private_key = get_private_key(test_seed,44);
     println!("子私钥 {}", private_key.private_key.to_string());
 
     assert_eq!(
@@ -52,31 +48,37 @@ fn test_get_private_key() {
         "L3sQh1LbgjxxsGW9hgSskg87MaMJWGcp4Pf8acAjbbeFSNBrPVC4"
     )
 }
+
+pub fn get_public_key(private_key: ExtendedPrivKey) -> ExtendedPubKey {
+    let secp = Secp256k1::new();
+    ExtendedPubKey::from_private(&secp, &private_key)
+}
+
+#[test]
+fn test_get_public_key() {
+    let test_mnemonic_phrase: &str =
+        "pulp gun crisp mechanic hub ahead blouse hurry life boss option evolve";
+    let test_seed = get_mnemonic(test_mnemonic_phrase)
+        .unwrap()
+        .to_seed("");
+
+    let hd_path = AccountHDPath::new(Purpose::Pubkey, 0, 0)
+        .address_at(0, 0)
+        .unwrap();
+    let private_key = get_private_key(test_seed, 44);
+
+    let public_key = get_public_key(private_key);
+    assert_eq!(
+        "032352a1c4465934cdff949e4f0bb9a050676a9f6162ecca238612b08519bdcded",
+        public_key.public_key.to_string()
+    );
+}
+
+// pub fn btc_addr_p2pkh(pubkey: ExtendedPubKey) -> &'static str {
+//     let p2pkh: String = Address::p2pkh(&pubkey.public_key, Network::Bitcoin).to_string();
 //
-// pub fn get_public_key(private_key: ExtendedPrivKey) -> ExtendedPubKey {
-//     let secp = Secp256k1::new();
-//     ExtendedPubKey::from_private(&secp, &private_key)
 // }
-//
-// #[test]
-// fn test_get_public_key() {
-//     let test_mnemonic_phrase: &str =
-//         "pulp gun crisp mechanic hub ahead blouse hurry life boss option evolve";
-//     let test_seed = self::get_mnemonic(test_mnemonic_phrase)
-//         .unwrap()
-//         .to_seed("");
-//
-//     let hd_path = AccountHDPath::new(Purpose::Pubkey, 0, 0)
-//         .address_at(0, 0)
-//         .unwrap();
-//     let private_key = get_private_key(test_seed, &hd_path);
-//
-//     let public_key = get_public_key(private_key);
-//     assert_eq!(
-//         "032352a1c4465934cdff949e4f0bb9a050676a9f6162ecca238612b08519bdcded",
-//         public_key.public_key.to_string()
-//     );
-// }
+
 //
 // pub fn pubkey_address(pubkey: ExtendedPubKey) -> [(&'static str, String); 3] {
 //     let p2pkh: String = Address::p2pkh(&pubkey.public_key, Network::Bitcoin).to_string();
