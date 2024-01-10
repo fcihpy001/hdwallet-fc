@@ -1,8 +1,10 @@
 use bip39::{Error, Mnemonic};
 use bitcoin::bip32::{ChildNumber, Xpriv};
-use bitcoin::{network::Network, bip32::{ Xpub}, Address};
+use bitcoin::{network::Network, bip32::{Xpub}, Address, PublicKey};
 use std::convert::TryInto;
+use std::str::FromStr;
 use bitcoin::secp256k1::Secp256k1;
+use crate::Address::{eth_addr_from_pub_str, tron_addr_from_pub_str};
 
 pub fn get_private_key(seed: [u8; 64], purpose: u32,coin_type: u32) -> Xpriv {
     let secp = Secp256k1::new();
@@ -35,7 +37,10 @@ pub fn btc_addr_p2pkh(mnemonic: &str) -> String {
     let seed = mn.unwrap().to_seed("");
     let private_key = get_private_key(seed, 44,0);
     let pubkey = get_public_key(private_key);
-    return  Address::p2pkh(&pubkey.to_pub(), Network::Bitcoin).to_string();
+    let str = pubkey.to_pub().to_string();
+    println!("pub_key:: {}", str.clone());
+    let public_key = PublicKey::from_str(str.as_str()).unwrap();
+    return  Address::p2pkh(&public_key, Network::Bitcoin).to_string();
 }
 
 pub fn btc_addr_p2shwpkh(mnemonic: &str) -> String {
@@ -65,6 +70,62 @@ pub fn eth_private(mnemonic: &str) -> String {
     // println!("子公钥 {}", private_key.private_key.public_key(&secp).to_string());
     // return private_key.private_key.key.to_string();
     return hex::encode(private_key.private_key.as_ref())
+}
+
+// addr from mnemonic
+pub fn btc_p2pkh_addr_from_mnemonic(mnemonic: &str) -> String {
+    let mn = Mnemonic::parse_normalized(mnemonic);
+    let seed = mn.unwrap().to_seed("");
+    let private_key = get_private_key(seed, 44,0);
+    let pubkey = get_public_key(private_key);
+    let str = pubkey.to_pub().to_string();
+    println!("pub_key:: {}", str.clone());
+    let public_key = PublicKey::from_str(str.as_str()).unwrap();
+    return  Address::p2pkh(&public_key, Network::Bitcoin).to_string();
+}
+
+pub fn btc_p2shwpkh_addr_from_mnemonic(mnemonic: &str) -> String {
+    let mn = Mnemonic::parse_normalized(mnemonic);
+    let seed = mn.unwrap().to_seed("");
+    let private_key = get_private_key(seed, 49,0);
+    let pubkey = get_public_key(private_key);
+    return  Address::p2shwpkh(&pubkey.to_pub(), Network::Bitcoin).unwrap().to_string();
+
+}
+
+pub fn btc_p2wpkh_addr_from_mnemonic(mnemonic: &str) -> String {
+    let mn = Mnemonic::parse_normalized(mnemonic);
+    let seed = mn.unwrap().to_seed("");
+    let private_key = get_private_key(seed, 84,0);
+    let pubkey = get_public_key(private_key);
+    return  Address::p2wpkh(&pubkey.to_pub(), Network::Bitcoin).unwrap().to_string();
+}
+
+pub fn eth_addr_from_mnemonic(mnemonic: &str) -> String {
+    let mn = Mnemonic::parse_normalized(mnemonic);
+    let seed = mn.unwrap().to_seed("");
+    let private_key = get_private_key(seed, 44,60);
+    let pubkey = get_public_key(private_key);
+    let secp = Secp256k1::new();
+    // println!("子私钥 {}", private_key.private_key.key.to_string());
+    // println!("子公钥 {}", private_key.private_key.public_key(&secp).to_string());
+    // return private_key.private_key.key.to_string();
+    // return hex::encode(private_key.private_key.as_ref())
+    let pub_key_str = private_key.private_key.public_key(&secp).to_string();
+     eth_addr_from_pub_str(pub_key_str.as_str())
+}
+
+pub fn tron_addr_from_mnemonic(mnemonic: &str) -> String {
+    let mn = Mnemonic::parse_normalized(mnemonic);
+    let seed = mn.unwrap().to_seed("");
+    let private_key = get_private_key(seed, 44,195);
+    let secp = Secp256k1::new();
+    let pub_key_str = private_key.private_key.public_key(&secp).to_string();
+    tron_addr_from_pub_str(pub_key_str.as_str())
+}
+
+fn get_mnemonic(mnemonic: &str) -> Result<Mnemonic, Error> {
+    return Mnemonic::parse_normalized(&mnemonic);
 }
 
 #[cfg(test)]
@@ -98,7 +159,7 @@ pub mod tests {
         assert_eq!(addr, "ff4d431538ee621168a8063e640653b2413ff4dbb519f954748d5eef669a6347")
     }
 
-    use crate::wallet::{btc_addr_p2pkh, btc_addr_p2shwpkh, btc_addr_p2wpkh, eth_private, get_mnemonic, get_private_key, get_public_key};
+    use crate::wallet::{btc_addr_p2pkh, btc_addr_p2shwpkh, btc_addr_p2wpkh, eth_addr_from_mnemonic, eth_private, get_mnemonic, get_private_key, get_public_key, tron_addr_from_mnemonic};
 
     #[test]
     fn test_get_private_key() {
@@ -136,8 +197,18 @@ pub mod tests {
             public_key.public_key.to_string()
         );
     }
-}
 
-fn get_mnemonic(mnemonic: &str) -> Result<Mnemonic, Error> {
-    return Mnemonic::parse_normalized(&mnemonic);
+    #[test]
+    fn test_eth_addr_from_mnemonic() {
+        let mn = "pulp gun crisp mechanic hub ahead blouse hurry life boss option evolve";
+        let addr = eth_addr_from_mnemonic(mn);
+        assert_eq!(addr, "0x24A6eE07E3D55b2552051cfb1AB9b4F34f34Add7".to_lowercase());
+    }
+
+    #[test]
+    fn test_tron_addr_from_mnemonic() {
+        let mn = "pulp gun crisp mechanic hub ahead blouse hurry life boss option evolve";
+        let addr = tron_addr_from_mnemonic(mn);
+        assert_eq!(addr, "TTAKsCvL9GjHzgADxQZEn5Lhd4UsMqay5a");
+    }
 }
