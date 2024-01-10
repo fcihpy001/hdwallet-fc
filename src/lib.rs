@@ -1,4 +1,4 @@
 pub mod wallet;
-mod Address;
-mod utils;
+pub mod Address;
+pub mod utils;
 
