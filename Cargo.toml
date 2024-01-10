@@ -13,9 +13,8 @@ path = "src/lib.rs"
 
 [dependencies]
 
-hdpath = { version = "0.6", features = ["with-bitcoin"] }
 secp256k1 = "0.20.3"
-bitcoin = "0.27.0"
+bitcoin = "0.31.1"
 bip39 = "2.0.0"
 hex = "0.4.3"
 sha3 = "0.10.8"

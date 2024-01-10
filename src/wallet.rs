@@ -1,14 +1,13 @@
 use bip39::{Error, Mnemonic};
-use bitcoin::util::bip32::{ChildNumber, ExtendedPrivKey};
-use bitcoin::{network::constants::Network, util::bip32::{DerivationPath, ExtendedPubKey}, Address, PublicKey};
-use hdpath::{AccountHDPath, Purpose, StandardHDPath};
-use secp256k1::Secp256k1;
+use bitcoin::bip32::{ChildNumber, Xpriv};
+use bitcoin::{network::Network, bip32::{ Xpub}, Address};
 use std::convert::TryInto;
+use bitcoin::secp256k1::Secp256k1;
 
-pub fn get_private_key(seed: [u8; 64], purpose: u32,coin_type: u32) -> ExtendedPrivKey {
+pub fn get_private_key(seed: [u8; 64], purpose: u32,coin_type: u32) -> Xpriv {
     let secp = Secp256k1::new();
 
-    let master = ExtendedPrivKey::new_master(Network::Bitcoin, &seed).unwrap();
+    let master = Xpriv::new_master(Network::Bitcoin, &seed).unwrap();
     // println!("bip32根密钥 {}", master.to_string());
 
     let path = vec![
@@ -19,17 +18,15 @@ pub fn get_private_key(seed: [u8; 64], purpose: u32,coin_type: u32) -> ExtendedP
         ChildNumber::Normal {index:0},
     ];
 
-    let private_key = master
-        .derive_priv(&secp, &path)
-        .unwrap();
-    // println!("扩展私钥 {}", private_key.to_string());
+    let private_key = master.derive_priv(&secp, &path).unwrap();
     return private_key;
 }
 
 
-pub fn get_public_key(private_key: ExtendedPrivKey) -> ExtendedPubKey {
+pub fn get_public_key(private_key: Xpriv) -> Xpub {
     let secp = Secp256k1::new();
-    ExtendedPubKey::from_private(&secp, &private_key)
+    // Xpub::from_private(&secp, &private_key)
+    Xpub::from_priv(&secp, &private_key)
 }
 
 
@@ -38,7 +35,7 @@ pub fn btc_addr_p2pkh(mnemonic: &str) -> String {
     let seed = mn.unwrap().to_seed("");
     let private_key = get_private_key(seed, 44,0);
     let pubkey = get_public_key(private_key);
-    return  Address::p2pkh(&pubkey.public_key, Network::Bitcoin).to_string();
+    return  Address::p2pkh(&pubkey.to_pub(), Network::Bitcoin).to_string();
 }
 
 pub fn btc_addr_p2shwpkh(mnemonic: &str) -> String {
@@ -46,7 +43,7 @@ pub fn btc_addr_p2shwpkh(mnemonic: &str) -> String {
     let seed = mn.unwrap().to_seed("");
     let private_key = get_private_key(seed, 49,0);
     let pubkey = get_public_key(private_key);
-    return  Address::p2shwpkh(&pubkey.public_key, Network::Bitcoin).unwrap().to_string();
+    return  Address::p2shwpkh(&pubkey.to_pub(), Network::Bitcoin).unwrap().to_string();
 
 }
 
@@ -55,24 +52,23 @@ pub fn btc_addr_p2wpkh(mnemonic: &str) -> String {
     let seed = mn.unwrap().to_seed("");
     let private_key = get_private_key(seed, 84,0);
     let pubkey = get_public_key(private_key);
-    return  Address::p2wpkh(&pubkey.public_key, Network::Bitcoin).unwrap().to_string();
+    return  Address::p2wpkh(&pubkey.to_pub(), Network::Bitcoin).unwrap().to_string();
 }
 
 pub fn eth_private(mnemonic: &str) -> String {
     let mn = Mnemonic::parse_normalized(mnemonic);
     let seed = mn.unwrap().to_seed("");
     let private_key = get_private_key(seed, 44,60);
-    let pubkey = get_public_key(private_key);
+    // let pubkey = get_public_key(private_key);
     // let secp = Secp256k1::new();
     // println!("子私钥 {}", private_key.private_key.key.to_string());
     // println!("子公钥 {}", private_key.private_key.public_key(&secp).to_string());
-    return private_key.private_key.key.to_string();
+    // return private_key.private_key.key.to_string();
+    return hex::encode(private_key.private_key.as_ref())
 }
 
 #[cfg(test)]
 pub mod tests {
-    use hdpath::{AccountHDPath, Purpose};
-    use crate::wallet::{btc_addr_p2pkh, btc_addr_p2shwpkh, btc_addr_p2wpkh, eth_private, get_mnemonic, get_private_key, get_public_key};
 
     #[test]
     fn test_p2p2kh_addr() {
@@ -88,7 +84,6 @@ pub mod tests {
         assert_eq!(addr, "33TPM4YMjigYdFE3J1zeVk7Y3pyBgXnNT9")
     }
 
-
     #[test]
     fn test_p2wpkh_addr() {
         let mn = "pulp gun crisp mechanic hub ahead blouse hurry life boss option evolve";
@@ -103,11 +98,13 @@ pub mod tests {
         assert_eq!(addr, "ff4d431538ee621168a8063e640653b2413ff4dbb519f954748d5eef669a6347")
     }
 
+    use crate::wallet::{btc_addr_p2pkh, btc_addr_p2shwpkh, btc_addr_p2wpkh, eth_private, get_mnemonic, get_private_key, get_public_key};
+
     #[test]
     fn test_get_private_key() {
         let test_mnemonic_phrase: &str =
             "pulp gun crisp mechanic hub ahead blouse hurry life boss option evolve";
-        let test_seed = self::get_mnemonic(test_mnemonic_phrase)
+        let test_seed = get_mnemonic(test_mnemonic_phrase)
             .unwrap()
             .to_seed("");
         println!("bip39种子(seed): {:?}", hex::encode(test_seed));
@@ -115,10 +112,10 @@ pub mod tests {
         // 获取扩展私钥
         let private_key = get_private_key(test_seed,44,0);
         println!("扩展密钥 {}", private_key.to_string());
-        println!("子私钥 {}", private_key.private_key.to_string());
+        // println!("子私钥 {}", private_key.private_key.to_string());
 
         assert_eq!(
-            private_key.private_key.to_string(),
+            private_key.to_priv().to_string(),
             "L3sQh1LbgjxxsGW9hgSskg87MaMJWGcp4Pf8acAjbbeFSNBrPVC4"
         )
     }
