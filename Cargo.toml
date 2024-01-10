@@ -1,18 +1,18 @@
 [package]
 name = "hdwallet-fc"
 description = "Hierarchical deterministic wallet"
-version = "0.2.6"
+version = "0.2.7"
 authors = ["fcihpy@gmail.com"]
 edition = "2021"
 license = "MIT OR Apache-2.0"
-
 keywords = ["hdwallet", "bip32","mnemonic","bip32","bip44"]
+repository = "https://github.com/fcihpy001/hdwallet-fc"
+
 [lib]
 name = "hdwallet_fc"
 path = "src/lib.rs"
 
 [dependencies]
-
 secp256k1 = "0.20.3"
 bitcoin = "0.31.1"
 bip39 = "2.0.0"

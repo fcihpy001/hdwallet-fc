@@ -38,7 +38,6 @@ pub fn btc_addr_p2pkh(mnemonic: &str) -> String {
     let private_key = get_private_key(seed, 44,0);
     let pubkey = get_public_key(private_key);
     let str = pubkey.to_pub().to_string();
-    println!("pub_key:: {}", str.clone());
     let public_key = PublicKey::from_str(str.as_str()).unwrap();
     return  Address::p2pkh(&public_key, Network::Bitcoin).to_string();
 }
@@ -79,7 +78,7 @@ pub fn btc_p2pkh_addr_from_mnemonic(mnemonic: &str) -> String {
     let private_key = get_private_key(seed, 44,0);
     let pubkey = get_public_key(private_key);
     let str = pubkey.to_pub().to_string();
-    println!("pub_key:: {}", str.clone());
+    // println!("pub_key:: {}", str.clone());
     let public_key = PublicKey::from_str(str.as_str()).unwrap();
     return  Address::p2pkh(&public_key, Network::Bitcoin).to_string();
 }
