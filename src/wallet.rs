@@ -3,9 +3,11 @@ use bitcoin::bip32::{ChildNumber, Xpriv};
 use bitcoin::{network::Network, bip32::{Xpub}, Address, PublicKey};
 use std::convert::TryInto;
 use std::str::FromStr;
+use std::time::Instant;
 use bitcoin::secp256k1::Secp256k1;
 use crate::Address::{eth_addr_from_pub_str, tron_addr_from_pub_str};
 
+// 获取私钥
 pub fn get_private_key(seed: [u8; 64], purpose: u32,coin_type: u32) -> Xpriv {
     let secp = Secp256k1::new();
 
@@ -24,14 +26,14 @@ pub fn get_private_key(seed: [u8; 64], purpose: u32,coin_type: u32) -> Xpriv {
     return private_key;
 }
 
-
+// 根据私钥获取公钥
 pub fn get_public_key(private_key: Xpriv) -> Xpub {
     let secp = Secp256k1::new();
     // Xpub::from_private(&secp, &private_key)
     Xpub::from_priv(&secp, &private_key)
 }
 
-
+// 根据助记词获取b2pkh类型的btc地址
 pub fn btc_addr_p2pkh(mnemonic: &str) -> String {
     let mn = Mnemonic::parse_normalized(mnemonic);
     let seed = mn.unwrap().to_seed("");
@@ -43,6 +45,7 @@ pub fn btc_addr_p2pkh(mnemonic: &str) -> String {
     return  Address::p2pkh(&public_key, Network::Bitcoin).to_string();
 }
 
+// 根据助记词获取p2shwpkh类型的btc地址
 pub fn btc_addr_p2shwpkh(mnemonic: &str) -> String {
     let mn = Mnemonic::parse_normalized(mnemonic);
     let seed = mn.unwrap().to_seed("");
@@ -51,7 +54,7 @@ pub fn btc_addr_p2shwpkh(mnemonic: &str) -> String {
     return  Address::p2shwpkh(&pubkey.to_pub(), Network::Bitcoin).unwrap().to_string();
 
 }
-
+// 根据助记词获取p2wpkh类型的btc地址
 pub fn btc_addr_p2wpkh(mnemonic: &str) -> String {
     let mn = Mnemonic::parse_normalized(mnemonic);
     let seed = mn.unwrap().to_seed("");
@@ -60,6 +63,7 @@ pub fn btc_addr_p2wpkh(mnemonic: &str) -> String {
     return  Address::p2wpkh(&pubkey.to_pub(), Network::Bitcoin).unwrap().to_string();
 }
 
+// 根据助记词获得以太私钥
 pub fn eth_private(mnemonic: &str) -> String {
     let mn = Mnemonic::parse_normalized(mnemonic);
     let seed = mn.unwrap().to_seed("");
@@ -72,7 +76,7 @@ pub fn eth_private(mnemonic: &str) -> String {
     return hex::encode(private_key.private_key.as_ref())
 }
 
-// addr from mnemonic
+// 根据助记词获取p2pkh_类型的btc地址
 pub fn btc_p2pkh_addr_from_mnemonic(mnemonic: &str) -> String {
     let mn = Mnemonic::parse_normalized(mnemonic);
     let seed = mn.unwrap().to_seed("");
@@ -84,6 +88,7 @@ pub fn btc_p2pkh_addr_from_mnemonic(mnemonic: &str) -> String {
     return  Address::p2pkh(&public_key, Network::Bitcoin).to_string();
 }
 
+// 根据助记词获取p2shwpkh类型的btc地址
 pub fn btc_p2shwpkh_addr_from_mnemonic(mnemonic: &str) -> String {
     let mn = Mnemonic::parse_normalized(mnemonic);
     let seed = mn.unwrap().to_seed("");
@@ -93,6 +98,7 @@ pub fn btc_p2shwpkh_addr_from_mnemonic(mnemonic: &str) -> String {
 
 }
 
+// 根据助记词获取p2wpkh类型的btc地址
 pub fn btc_p2wpkh_addr_from_mnemonic(mnemonic: &str) -> String {
     let mn = Mnemonic::parse_normalized(mnemonic);
     let seed = mn.unwrap().to_seed("");
@@ -101,7 +107,10 @@ pub fn btc_p2wpkh_addr_from_mnemonic(mnemonic: &str) -> String {
     return  Address::p2wpkh(&pubkey.to_pub(), Network::Bitcoin).unwrap().to_string();
 }
 
+// 根据助记词获取eth地址
 pub fn eth_addr_from_mnemonic(mnemonic: &str) -> String {
+    let start_time = Instant::now();
+
     let mn = Mnemonic::parse_normalized(mnemonic);
     let seed = mn.unwrap().to_seed("");
     let private_key = get_private_key(seed, 44,60);
@@ -112,9 +121,12 @@ pub fn eth_addr_from_mnemonic(mnemonic: &str) -> String {
     // return private_key.private_key.key.to_string();
     // return hex::encode(private_key.private_key.as_ref())
     let pub_key_str = private_key.private_key.public_key(&secp).to_string();
-     eth_addr_from_pub_str(pub_key_str.as_str())
+     let str = eth_addr_from_pub_str(pub_key_str.as_str());
+    println!("time: {}", start_time.elapsed().as_micros());
+    return str;
 }
 
+// 根据助记词获取tron地址
 pub fn tron_addr_from_mnemonic(mnemonic: &str) -> String {
     let mn = Mnemonic::parse_normalized(mnemonic);
     let seed = mn.unwrap().to_seed("");
@@ -124,6 +136,7 @@ pub fn tron_addr_from_mnemonic(mnemonic: &str) -> String {
     tron_addr_from_pub_str(pub_key_str.as_str())
 }
 
+// 根据字符串得到助记词
 fn get_mnemonic(mnemonic: &str) -> Result<Mnemonic, Error> {
     return Mnemonic::parse_normalized(&mnemonic);
 }

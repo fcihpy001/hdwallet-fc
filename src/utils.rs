@@ -1,6 +1,7 @@
 use hex::FromHex;
 use secp256k1::{ffi, PublicKey, Secp256k1, SecretKey};
 
+// 根据私钥推导出公钥
 pub fn public_key(hex_64_private_key: &str) -> PublicKey {
 
     // 根据私钥生成加密种子
@@ -10,9 +11,6 @@ pub fn public_key(hex_64_private_key: &str) -> PublicKey {
     let secret_key = SecretKey::from_slice(&key_byte).unwrap();
 
     PublicKey::from_secret_key(&secp, &secret_key)
-
-    // let k = PublicKey::from_secret_key(&secp, &secret_key);
-    // k.to_string()
 }
 
 fn check_private(key: Vec<u8>) -> bool {

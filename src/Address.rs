@@ -3,8 +3,7 @@ use bitcoin::{Address, Network};
 use secp256k1::PublicKey;
 use sha3::{Digest, Keccak256};
 
-// 通过公钥推导出地址
-
+// 通过公钥推导出eth地址
 pub fn eth_addr_from_pub_str(pub_key_str: &str) -> String {
     let pub_key = PublicKey::from_str(pub_key_str).unwrap();
     // 解析公钥为非压缩公式,并丢弃第一个字节0x04
@@ -21,6 +20,7 @@ pub fn eth_addr_from_pub_str(pub_key_str: &str) -> String {
     format!("0x{}", addr)
 }
 
+// 通过公钥推导出tron地址
 pub fn tron_addr_from_pub_str(pub_key_str: &str) -> String {
     let pub_key = PublicKey::from_str(pub_key_str).unwrap();
     // 解析公钥为非压缩公式,并丢弃第一个字节0x04
@@ -40,16 +40,19 @@ pub fn tron_addr_from_pub_str(pub_key_str: &str) -> String {
     addr.into_string()
 }
 
+// 通过公钥推导出btc_p2pkh地址
 pub fn btc_p2pkh_addr_from_pub_str(pub_key_str: &str) -> String {
     let pub_key = bitcoin::key::PublicKey::from_str(pub_key_str).unwrap();
     return  Address::p2pkh(&pub_key, Network::Bitcoin).to_string();
 }
 
+// 通过公钥推导出btc_p2pshwpk地址
 pub fn btc_p2pshwpkh_addr_from_pub_str(pub_key_str: &str) -> String {
     let pub_key = bitcoin::key::PublicKey::from_str(pub_key_str).unwrap();
     return  Address::p2shwpkh(&pub_key, Network::Bitcoin).unwrap().to_string();
 }
 
+// 通过公钥推导出btc_p2wpkh地址
 pub fn btc_p2wpkh_addr_from_pub_str(pub_key_str: &str) -> String {
     let pub_key = bitcoin::key::PublicKey::from_str(pub_key_str).unwrap();
     return  Address::p2wpkh(&pub_key, Network::Bitcoin).unwrap().to_string();
