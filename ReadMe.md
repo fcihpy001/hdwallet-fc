@@ -30,7 +30,7 @@
 
 ```toml
 [dependencies]
-hdwallet-fc = "0.2.8"
+hdwallet-fc = "0.2.9"
 ```
 
 #### 根据助记词生成 Bitcoin P2PKH 地址
@@ -228,7 +228,7 @@ Add the crate to `Cargo.toml`:
 
 ```toml
 [dependencies]
-hdwallet-fc = "0.2.8"
+hdwallet-fc = "0.2.9"
 ```
 
 #### Derive a Bitcoin P2PKH address from a mnemonic
