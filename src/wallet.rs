@@ -171,7 +171,13 @@ pub mod tests {
         assert_eq!(addr, "ff4d431538ee621168a8063e640653b2413ff4dbb519f954748d5eef669a6347")
     }
 
-    use crate::wallet::{btc_addr_p2pkh, btc_addr_p2shwpkh, btc_addr_p2wpkh, eth_addr_from_mnemonic, eth_private, get_mnemonic, get_private_key, get_public_key, tron_addr_from_mnemonic};
+    use crate::Address::eth_addr_from_pub_str;
+    use crate::utils::public_key;
+    use crate::wallet::{
+        btc_addr_p2pkh, btc_addr_p2shwpkh, btc_addr_p2wpkh, btc_p2pkh_addr_from_mnemonic,
+        btc_p2shwpkh_addr_from_mnemonic, btc_p2wpkh_addr_from_mnemonic, eth_addr_from_mnemonic,
+        eth_private, get_mnemonic, get_private_key, get_public_key, tron_addr_from_mnemonic,
+    };
 
     #[test]
     fn test_get_private_key() {
@@ -222,5 +228,29 @@ pub mod tests {
         let mn = "pulp gun crisp mechanic hub ahead blouse hurry life boss option evolve";
         let addr = tron_addr_from_mnemonic(mn);
         assert_eq!(addr, "TTAKsCvL9GjHzgADxQZEn5Lhd4UsMqay5a");
+    }
+
+    #[test]
+    fn test_btc_mnemonic_aliases_match_primary_functions() {
+        let mn = "pulp gun crisp mechanic hub ahead blouse hurry life boss option evolve";
+
+        assert_eq!(btc_p2pkh_addr_from_mnemonic(mn), btc_addr_p2pkh(mn));
+        assert_eq!(btc_p2shwpkh_addr_from_mnemonic(mn), btc_addr_p2shwpkh(mn));
+        assert_eq!(btc_p2wpkh_addr_from_mnemonic(mn), btc_addr_p2wpkh(mn));
+    }
+
+    #[test]
+    fn test_eth_private_derives_same_address_as_mnemonic() {
+        let mn = "pulp gun crisp mechanic hub ahead blouse hurry life boss option evolve";
+        let pub_key = public_key(eth_private(mn).as_str());
+        let addr_from_private = eth_addr_from_pub_str(pub_key.to_string().as_str());
+
+        assert_eq!(addr_from_private, eth_addr_from_mnemonic(mn));
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_invalid_mnemonic_panics() {
+        btc_addr_p2pkh("not a valid mnemonic");
     }
 }

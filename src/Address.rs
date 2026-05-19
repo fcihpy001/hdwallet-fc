@@ -96,4 +96,21 @@ pub mod tests {
         let addr = tron_addr_from_pub_str(pub_key_str);
         assert_eq!(addr, "TV5x391v25E9KZMLXJcaDVdZ5XRRwKzimj");
     }
+
+    #[test]
+    fn test_eth_addr_is_same_for_compressed_and_uncompressed_pubkey() {
+        let compressed_pub_key = "03a34b99f22c790c4e36b2b3c2c35a36db06226e41c692fc82b8b56ac1c540c5bd";
+        let uncompressed_pub_key = "04a34b99f22c790c4e36b2b3c2c35a36db06226e41c692fc82b8b56ac1c540c5bd5b8dec5235a0fa8722476c7709c02559e3aa73aa03918ba2d492eea75abea235";
+
+        assert_eq!(
+            eth_addr_from_pub_str(compressed_pub_key),
+            eth_addr_from_pub_str(uncompressed_pub_key)
+        );
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_invalid_public_key_panics() {
+        eth_addr_from_pub_str("not a valid public key");
+    }
 }

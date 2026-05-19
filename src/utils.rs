@@ -1,5 +1,5 @@
 use hex::FromHex;
-use secp256k1::{ffi, PublicKey, Secp256k1, SecretKey};
+use secp256k1::{PublicKey, Secp256k1, SecretKey};
 
 // 根据私钥推导出公钥
 pub fn public_key(hex_64_private_key: &str) -> PublicKey {
@@ -15,25 +15,18 @@ pub fn public_key(hex_64_private_key: &str) -> PublicKey {
 
 fn check_private(key: Vec<u8>) -> bool {
     // 校验私钥长度
-    if key.len() != 64 {
+    if key.len() != 32 {
         return false;
     }
+
     // 校验私钥是否合法
-    unsafe {
-        return if ffi::secp256k1_ec_seckey_verify(ffi::secp256k1_context_no_precomp, key.as_ptr())
-            != 0
-        {
-            true
-        } else {
-            false
-        };
-    }
+    SecretKey::from_slice(&key).is_ok()
 }
 
 #[cfg(test)]
 pub mod tests {
     use hex::FromHex;
-    use crate::utils::public_key;
+    use crate::utils::{check_private, public_key};
 
     #[test]
     fn test_private_public() {
@@ -47,6 +40,31 @@ pub mod tests {
             hex::encode(pub_key.serialize()),
             "03a34b99f22c790c4e36b2b3c2c35a36db06226e41c692fc82b8b56ac1c540c5bd"
         );
+    }
+
+    #[test]
+    fn test_check_private_accepts_valid_32_byte_secret() {
+        let key =
+            Vec::from_hex("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855")
+                .unwrap();
+        assert!(check_private(key));
+    }
+
+    #[test]
+    fn test_check_private_rejects_invalid_length() {
+        let key = Vec::from_hex("e3b0c44298fc1c14").unwrap();
+        assert!(!check_private(key));
+    }
+
+    #[test]
+    fn test_check_private_rejects_zero_secret() {
+        assert!(!check_private(vec![0; 32]));
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_public_key_panics_on_invalid_private_key() {
+        public_key("0000000000000000000000000000000000000000000000000000000000000000");
     }
 
     // #[test]
